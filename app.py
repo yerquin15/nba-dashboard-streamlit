@@ -59,9 +59,7 @@ col3.metric("Porcentaje positivo promedio", f"{filtered['porcentaje_positive_tot
 col4.metric("Tiempo promedio jugado", f"{filtered['average_playtime_forever'].mean():.1f} horas")
 st.divider()
 
-# --------------------------------------------------
-# DASHBOARDS EXISTENTES (con gráficas más pequeñas y en columnas)
-# --------------------------------------------------
+
 st.subheader("Relación entre precio y valoración / Popularidad vs calidad")
 col_left, col_right = st.columns(2)
 
@@ -120,7 +118,7 @@ numeric_cols = filtered.select_dtypes(include=["int64", "float64"]).columns
 corr = filtered[numeric_cols].corr()
 
 fig_corr, ax_corr = plt.subplots(figsize=(10, 8))
-sns.heatmap(corr, annot=True, cmap="coolwarm", fmt=".2f", linewidths=0.5, ax=ax_corr)
+sns.heatmap(dataset_special.corr(), annot=True, fmt=".2f", cmap='coolwarm')
 ax_corr.set_title("Matriz de correlación (datos filtrados)")
 st.pyplot(fig_corr)
 st.divider()
