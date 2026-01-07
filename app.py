@@ -127,13 +127,17 @@ st.divider()
 st.subheader("Evolución anual de la industria")
 
 annual = (
-    filtered.groupby("release_year")
+    df[
+        df["required_age"].isin(age) &
+        df["price"].between(price_range[0], price_range[1])
+    ]
+    .groupby("release_year")
     .agg(
-        juegos=("price", "count"),
         precio_promedio=("price", "mean"),
         valoracion_promedio=("porcentaje_positive_total", "mean")
     )
     .reset_index()
+    .sort_values("release_year")
 )
 
 fig4, ax4 = plt.subplots(figsize=(6, 4))
