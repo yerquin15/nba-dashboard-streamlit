@@ -113,14 +113,14 @@ st.pyplot(fig4)
 st.divider()
 
 # --------------------------------------------------
-# NUEVO: MAPA DE CALOR DE CORRELACIÓN GLOBAL (en datos filtrados)
+# NUEVO: MAPA DE CALOR DE CORRELACIÓN GLOBAL 
 # --------------------------------------------------
-st.subheader("Mapa de calor: Correlaciones entre variables numéricas")
+st.subheader("Mapa de calor")
 numeric_cols = filtered.select_dtypes(include=["int64", "float64"]).columns
 corr = filtered[numeric_cols].corr()
 
 fig_corr, ax_corr = plt.subplots(figsize=(10, 8))
-sns.heatmap(corr, annot=True, cmap="coolwarm", fmt=".2f", linewidths=0.5, ax=ax_corr)
+sns.heatmap(corr, annot=True, cmap="coolwarm", linewidths=0.5, ax=ax_corr)
 ax_corr.set_title("Matriz de correlación (datos filtrados)")
 st.pyplot(fig_corr)
 st.divider()
