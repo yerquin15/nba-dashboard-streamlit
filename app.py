@@ -87,16 +87,6 @@ age = st.sidebar.multiselect(
     default=age_options
 )
 
-min_price = float(df["price"].min())
-max_price = float(df["price"].max())
-price_range = st.sidebar.slider(
-    " Rango de precio ($)",
-    min_price,
-    max_price,
-    (min_price, max_price),
-    step=1.0
-)
-
 # Filtro de valoración mínima
 min_rating = st.sidebar.slider(
     " Valoración mínima (%)",
@@ -111,7 +101,6 @@ min_rating = st.sidebar.slider(
 filtered = df[
     (df["release_year"] == year) &
     (df["required_age"].isin(age)) &
-    (df["price"].between(price_range[0], price_range[1])) &
     (df["porcentaje_positive_total"] * 100 >= min_rating)
 ].copy()
 
