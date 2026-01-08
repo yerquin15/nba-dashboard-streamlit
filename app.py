@@ -72,11 +72,16 @@ st.sidebar.title("Filtros de Análisis")
 st.sidebar.markdown("---")
 
 # Filtro de año
-year_options = sorted([y for y in df["release_year"].dropna().unique() if not np.isnan(y)], reverse=True)
-year = st.sidebar.selectbox(
-    "Año de lanzamiento",
-    year_options,
-    index=0
+year_options = sorted([y for y in df["release_year"].dropna().unique() if not np.isnan(y)])
+min_year = int(min(year_options))
+max_year = int(max(year_options))
+
+year_range = st.sidebar.slider(
+    "Rango de años",
+    min_year,
+    max_year,
+    (max_year - 5, max_year),  # Por defecto últimos 5 años
+    step=1
 )
 
 # Filtro de clasificación ESRB
@@ -98,7 +103,8 @@ min_rating = st.sidebar.slider(
 
 # Aplicar filtros
 filtered = df[
-    (df["release_year"] == year) &
+    (df["release_year"] >= year_range[0]) &
+    (df["release_year"] <= year_range[1]) &
     (df["required_age"].isin(age)) &
     (df["porcentaje_positive_total"] * 100 >= min_rating)
 ].copy()
@@ -106,12 +112,13 @@ filtered = df[
 # ==================================================
 # TABS PRINCIPALES
 # ==================================================
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "Visión General",
     "Análisis Exploratorio",
     "Tendencias Temporales",
-    "Insights Avanzados",
-    "Galería Visual"
+    "Avanzados",
+    "NLP",
+    "Correlaciones"
 ])
 
 # ==================================================
@@ -119,7 +126,7 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
 # ==================================================
 with tab1:
     st.title("Dashboard de Videojuegos")
-    st.markdown(f"### Análisis del año **{int(year)}**")
+    st.markdown(f"### Análisis de {int(year_range[0])} a {int(year_range[1])}")
     
     # Métricas principales
     col1, col2, col3, col4 = st.columns(4)
@@ -562,6 +569,123 @@ with tab5:
     
     st.markdown("---")
 
+# ==================================================
+# TAB 6 - ANÁLISIS DE CORRELACIONES
+# ==================================================
+with tab6:
+    st.header("Análisis de Correlaciones")
+    st.markdown("Análisis detallado de las relaciones entre variables del dataset")
+    
+    # Correlaciones principales
+    st.subheader("Correlaciones Significativas Encontradas")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("### Correlaciones Fuertes (>0.7)")
+        st.success("""
+        **1. Reseñas Positivas vs Recomendaciones**
+        - Correlación: **0.93**
+        - Interpretación: Fuerte relación positiva entre reseñas positivas y recomendaciones
+        
+        **2. Jugadores Máximos/Mínimos vs Recomendaciones**
+        - Correlación: **~0.7**
+        - Interpretación: Los juegos con más capacidad de jugadores tienden a tener más recomendaciones
+        """)
+        
+        st.info("""
+        **3. Reseñas Negativas vs Recomendaciones**
+        - Correlación: **0.63**
+        - Interpretación: Incluso las reseñas negativas se correlacionan con recomendaciones (juegos populares reciben más feedback en general)
+        """)
+    
+    with col2:
+        st.markdown("### Correlaciones Moderadas (0.3-0.7)")
+        st.warning("""
+        **4. Peak CCU vs Engagement**
+        - Correlación promedio: **~0.4**
+        - Variables: positive, negative, recommendations, min_owners, max_owners
+        - Interpretación: El pico de usuarios simultáneos tiene relación moderada con el engagement
+        
+        **5. Metacritic Score vs Dueños**
+        - Correlación: **0.33**
+        - Interpretación: El score de Metacritic tiene influencia moderada en las ventas
+        """)
+    
+    st.markdown("---")
+    
+    # Visualización de matriz de correlación
+    st.subheader("Matriz de Correlación Visual")
+    
+    # Seleccionar columnas relevantes para correlación
+    corr_cols = ['positive', 'negative', 'recommendations', 'peak_ccu', 
+                 'metacritic_score', 'min_owners', 'max_owners', 'price', 
+                 'average_playtime_forever', 'total_num_reviews']
+    
+    corr_cols_available = [col for col in corr_cols if col in filtered.columns]
+    
+    if len(corr_cols_available) >= 2:
+        corr_matrix = filtered[corr_cols_available].corr()
+        
+        fig_corr = go.Figure(data=go.Heatmap(
+            z=corr_matrix.values,
+            x=corr_matrix.columns,
+            y=corr_matrix.columns,
+            colorscale='RdBu',
+            zmid=0,
+            text=corr_matrix.values,
+            texttemplate='%{text:.2f}',
+            textfont={"size": 10},
+            colorbar=dict(title="Correlación")
+        ))
+        
+        fig_corr.update_layout(
+            template="plotly_dark",
+            height=600,
+            title="Matriz de Correlación entre Variables Clave",
+            xaxis={'side': 'bottom'},
+            yaxis={'side': 'left'}
+        )
+        
+        st.plotly_chart(fig_corr, use_container_width=True)
+    else:
+        st.warning("No hay suficientes columnas disponibles para generar la matriz de correlación")
+    
+    st.markdown("---")
+    
+    # Variables irrelevantes
+    st.subheader("Variables con Baja Correlación")
+    
+    st.error("""
+    ### Variables Menos Relevantes para Predicción
+    
+    Las siguientes variables mostraron correlaciones bajas (<0.3) con métricas de éxito:
+    
+    - **price**: El precio no es un predictor fuerte del éxito
+    - **discount**: Los descuentos tienen impacto limitado en correlaciones
+    - **release_date**: La fecha de lanzamiento por sí sola no predice el éxito
+    - **achievements**: Los logros tienen correlación débil con engagement
+    - **required_age**: La clasificación de edad no correlaciona fuertemente
+    - **dlc_count**: La cantidad de DLCs tiene impacto limitado
+    
+    **Implicación**: Estas variables pueden ser menos útiles para modelos predictivos de éxito de juegos.
+    """)
+    
+    st.markdown("---")
+    
+    # Insights clave
+    st.subheader("Conclusiones del Análisis de Correlaciones")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.metric("Correlación más fuerte", "0.93", "Positivas → Recomendaciones")
+    
+    with col2:
+        st.metric("Correlación moderada clave", "0.70", "Max Players → Engagement")
+    
+    with col3:
+        st.metric("Variables de bajo impacto", "6", "Price, Discount, etc.")
 
     
    
