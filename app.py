@@ -618,31 +618,7 @@ with tab6:
         # Matriz de correlación solo con columnas numéricas clave
         corr_matrix = filtered[available_key_cols].corr()
 
-        # --- GRÁFICA 1: Matriz de correlación general ---
-        st.subheader("Matriz de Correlación General")
-        fig_corr = go.Figure(data=go.Heatmap(
-            z=corr_matrix.values,
-            x=corr_matrix.columns,
-            y=corr_matrix.columns,
-            colorscale='RdBu',
-            zmid=0,
-            text=corr_matrix.values.round(3),
-            texttemplate='%{text:.2f}',
-            textfont={"size": 11},
-            hoverongaps=False,
-            colorbar=dict(title="Correlación")
-        ))
-
-        fig_corr.update_layout(
-            template="plotly_dark",
-            height=max(600, len(available_key_cols) * 50),
-            title="Correlaciones entre Variables Clave",
-            xaxis=dict(tickangle=45),
-            yaxis=dict(tickangle=0)
-        )
-        st.plotly_chart(fig_corr, use_container_width=True)
-
-        st.markdown("---")
+       
 
         # --- GRÁFICAS ESPECÍFICAS ---
         st.subheader("Relaciones Clave Destacadas")
@@ -701,25 +677,7 @@ with tab6:
 
         st.markdown("---")
 
-        # --- VARIABLES CON BAJA CORRELACIÓN ---
-        st.subheader("Variables con Baja Correlación al Éxito")
-        success_metrics = ['recommendations', 'positive', 'negative', 'total_num_reviews', 'max_owners']
-        success_metrics = [c for c in success_metrics if c in available_key_cols]
-
-        if success_metrics:
-            low_corr = []
-            for col in ['price', 'required_age', 'achievements', 'dlc_count']:
-                if col in available_key_cols:
-                    max_abs_corr = corr_matrix.loc[col, success_metrics].abs().max()
-                    if max_abs_corr < 0.3:
-                        low_corr.append((col, max_abs_corr))
-
-            if low_corr:
-                st.error("**Variables con correlación débil (<0.3) con métricas de éxito:**")
-                for col, val in low_corr:
-                    st.markdown(f"- **{col.replace('_', ' ').title()}**: {val:.3f}")
-            else:
-                st.info("En los datos filtrados, algunas variables esperadas como 'irrelevantes' muestran correlaciones más altas.")
+    
 
    
 
