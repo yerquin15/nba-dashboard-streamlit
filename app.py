@@ -511,27 +511,34 @@ with tab4:
     col1, col2 = st.columns([2, 1])
          
        
-    with col2:
-        st.subheader("Top Performers")
+   with col2:
+    st.subheader("Top Performers")
+    
+    # Identificar mejores juegos
+    if 'name' in filtered.columns and len(filtered) > 0:
+        valid_games = filtered[filtered['name'].notna()]
         
-        # Identificar mejores juegos
-        if 'name' in filtered.columns:
+        if len(valid_games) > 0:
             # Mejor valorado
-            best_rated = filtered.nlargest(1, 'porcentaje_positive_total').iloc[0]
+            best_rated = valid_games.nlargest(1, 'porcentaje_positive_total').iloc[0]
             st.markdown(f"**Mejor Valorado:**")
-            st.info(f"{best_rated['name'] if 'name' in filtered.columns else 'N/A'}\n\n{best_rated['porcentaje_positive_total']*100:.1f}% positive")
+            st.info(f"{best_rated['name']}\n\n{best_rated['porcentaje_positive_total']*100:.1f}% positive")
             
             # Más popular
-            most_popular = filtered.nlargest(1, 'total_num_reviews').iloc[0]
+            most_popular = valid_games.nlargest(1, 'total_num_reviews').iloc[0]
             st.markdown(f"**Más Popular:**")
-            st.info(f"{most_popular['name'] if 'name' in filtered.columns else 'N/A'}\n\n{int(most_popular['total_num_reviews']):,} reviews")
+            st.info(f"{most_popular['name']}\n\n{int(most_popular['total_num_reviews']):,} reviews")
             
             # Mejor relación calidad-precio
-            filtered_copy['value_score'] = filtered_copy['porcentaje_positive_total'] / (filtered_copy['price'] + 1)
-            best_value = filtered_copy.nlargest(1, 'value_score').iloc[0]
+            valid_games_copy = valid_games.copy()
+            valid_games_copy['value_score'] = valid_games_copy['porcentaje_positive_total'] / (valid_games_copy['price'] + 1)
+            best_value = valid_games_copy.nlargest(1, 'value_score').iloc[0]
             st.markdown(f"**Mejor Valor:**")
-            st.success(f"{best_value['name'] if 'name' in filtered.columns else 'N/A'}\n\n${best_value['price']:.2f} - {best_value['porcentaje_positive_total']*100:.1f}%")
-    
+            st.success(f"{best_value['name']}\n\n${best_value['price']:.2f} - {best_value['porcentaje_positive_total']*100:.1f}%")
+        else:
+            st.warning(f"No hay juegos disponibles para el año {int(year)}")
+    else:
+        st.warning("No hay datos suficientes")
     st.markdown("---")
     
     # Tabla de datos filtrados
