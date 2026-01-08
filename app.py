@@ -602,59 +602,28 @@ with tab5:
 # ==================================================
 with tab6:
     st.header("Análisis de Correlaciones")
-    st.markdown("Análisis detallado de las relaciones entre variables del dataset")
-    
-    # Correlaciones principales
-    st.subheader("Correlaciones Significativas Encontradas")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("### Correlaciones Fuertes (>0.7)")
-        st.success("""
-        **1. Reseñas Positivas vs Recomendaciones**
-        - Correlación: **0.93**
-        - Interpretación: Fuerte relación positiva entre reseñas positivas y recomendaciones
-        
-        **2. Jugadores Máximos/Mínimos vs Recomendaciones**
-        - Correlación: **~0.7**
-        - Interpretación: Los juegos con más capacidad de jugadores tienden a tener más recomendaciones
-        """)
-        
-        st.info("""
-        **3. Reseñas Negativas vs Recomendaciones**
-        - Correlación: **0.63**
-        - Interpretación: Incluso las reseñas negativas se correlacionan con recomendaciones (juegos populares reciben más feedback en general)
-        """)
-    
-    with col2:
-        st.markdown("### Correlaciones Moderadas (0.3-0.7)")
-        st.warning("""
-        **4. Peak CCU vs Engagement**
-        - Correlación promedio: **~0.4**
-        - Variables: positive, negative, recommendations, min_owners, max_owners
-        - Interpretación: El pico de usuarios simultáneos tiene relación moderada con el engagement
-        
-        **5. Metacritic Score vs Dueños**
-        - Correlación: **0.33**
-        - Interpretación: El score de Metacritic tiene influencia moderada en las ventas
-        """)
-    
-    st.markdown("---")
-    
-    # Visualización de matriz de correlación
-    st.subheader("Matriz de Correlación Visual")
-    
-    # Seleccionar columnas relevantes para correlación
-    corr_cols = ['positive', 'negative', 'recommendations', 'peak_ccu', 
-                 'metacritic_score', 'min_owners', 'max_owners', 'price', 
-                 'average_playtime_forever', 'total_num_reviews']
-    
-    corr_cols_available = [col for col in corr_cols if col in filtered.columns]
-    
-    if len(corr_cols_available) >= 2:
-        corr_matrix = filtered[corr_cols_available].corr()
-        
+    st.markdown("Relaciones clave entre variables de éxito y engagement en los juegos filtrados")
+
+    # Columnas de interés para correlaciones
+    key_columns = [
+        'positive', 'negative', 'recommendations',
+        'peak_ccu', 'metacritic_score',
+        'min_owners', 'max_owners',
+        'price', 'average_playtime_forever',
+        'total_num_reviews', 'required_age',
+        'achievements', 'dlc_count'
+    ]
+
+    # Filtrar solo las que existen en el dataset
+    available_cols = [col for col in key_columns if col in filtered.columns]
+
+    if len(available_cols) < 2:
+        st.warning("No hay suficientes columnas numéricas disponibles para calcular correlaciones.")
+    else:
+        corr_matrix = filtered[available_cols].corr()
+
+        # --- GRÁFICA 1: Matriz de correlación general ---
+        st.subheader("Matriz de Correlación General")
         fig_corr = go.Figure(data=go.Heatmap(
             z=corr_matrix.values,
             x=corr_matrix.columns,
@@ -663,57 +632,121 @@ with tab6:
             zmid=0,
             text=corr_matrix.values,
             texttemplate='%{text:.2f}',
-            textfont={"size": 10},
-            colorbar=dict(title="Correlación")
+            textfont={"size": 11},
+            hoverongaps=False,
+            colorbar=dict(title="Correlación", thickness=20)
         ))
-        
+
         fig_corr.update_layout(
             template="plotly_dark",
-            height=600,
-            title="Matriz de Correlación entre Variables Clave",
-            xaxis={'side': 'bottom'},
-            yaxis={'side': 'left'}
+            height=700,
+            title="Correlaciones entre Variables Clave de Engagement y Éxito",
+            xaxis=dict(tickangle=45),
+            yaxis=dict(tickangle=0)
         )
-        
         st.plotly_chart(fig_corr, use_container_width=True)
-    else:
-        st.warning("No hay suficientes columnas disponibles para generar la matriz de correlación")
-    
-    st.markdown("---")
-    
-    # Variables irrelevantes
-    st.subheader("Variables con Baja Correlación")
-    
-    st.error("""
-    ### Variables Menos Relevantes para Predicción
-    
-    Las siguientes variables mostraron correlaciones bajas (<0.3) con métricas de éxito:
-    
-    - **price**: El precio no es un predictor fuerte del éxito
-    - **discount**: Los descuentos tienen impacto limitado en correlaciones
-    - **release_date**: La fecha de lanzamiento por sí sola no predice el éxito
-    - **achievements**: Los logros tienen correlación débil con engagement
-    - **required_age**: La clasificación de edad no correlaciona fuertemente
-    - **dlc_count**: La cantidad de DLCs tiene impacto limitado
-    
-    **Implicación**: Estas variables pueden ser menos útiles para modelos predictivos de éxito de juegos.
-    """)
-    
-    st.markdown("---")
-    
-    # Insights clave
-    st.subheader("Conclusiones del Análisis de Correlaciones")
-    
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.metric("Correlación más fuerte", "0.93", "Positivas → Recomendaciones")
-    
-    with col2:
-        st.metric("Correlación moderada clave", "0.70", "Max Players → Engagement")
-    
-    with col3:
-        st.metric("Variables de bajo impacto", "6", "Price, Discount, etc.")
+
+        st.markdown("---")
+
+        # --- GRÁFICAS ESPECÍFICAS: Scatter plots con línea de tendencia ---
+        st.subheader("Relaciones Clave Destacadas")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            # 1. Positive vs Recommendations
+            if 'positive' in available_cols and 'recommendations' in available_cols:
+                fig1 = px.scatter(
+                    filtered, x='positive', y='recommendations',
+                    trendline="ols",
+                    template="plotly_dark",
+                    labels={'positive': 'Reseñas Positivas', 'recommendations': 'Recomendaciones'},
+                    title="Reseñas Positivas vs Recomendaciones"
+                )
+                fig1.update_traces(marker=dict(opacity=0.6, size=6))
+                fig1.update_layout(height=400)
+                st.plotly_chart(fig1, use_container_width=True)
+                corr_pos_rec = corr_matrix.loc['positive', 'recommendations'] if 'positive' in corr_matrix.index and 'recommendations' in corr_matrix.columns else None
+                if corr_pos_rec:
+                    st.success(f"**Correlación: {corr_pos_rec:.3f}** → Muy fuerte relación positiva")
+
+            # 2. Negative vs Recommendations
+            if 'negative' in available_cols and 'recommendations' in available_cols:
+                fig2 = px.scatter(
+                    filtered, x='negative', y='recommendations',
+                    trendline="ols",
+                    template="plotly_dark",
+                    labels={'negative': 'Reseñas Negativas', 'recommendations': 'Recomendaciones'},
+                    title="Reseñas Negativas vs Recomendaciones"
+                )
+                fig2.update_traces(marker=dict(opacity=0.6, size=6))
+                fig2.update_layout(height=400)
+                st.plotly_chart(fig2, use_container_width=True)
+                corr_neg_rec = corr_matrix.loc['negative', 'recommendations'] if 'negative' in corr_matrix.index and 'recommendations' in corr_matrix.columns else None
+                if corr_neg_rec:
+                    st.info(f"**Correlación: {corr_neg_rec:.3f}** → Incluso las negativas contribuyen al volumen total")
+
+        with col2:
+            # 3. Peak CCU vs Engagement (promedio de varias)
+            if 'peak_ccu' in available_cols:
+                engagement_cols = [c for c in ['positive', 'negative', 'recommendations', 'min_owners', 'max_owners'] if c in available_cols]
+                if engagement_cols:
+                    avg_corr_peak = corr_matrix.loc['peak_ccu', engagement_cols].mean()
+                    fig3 = px.scatter(
+                        filtered.melt(id_vars='peak_ccu', value_vars=engagement_cols),
+                        x='peak_ccu', y='value', color='variable',
+                        trendline="ols",
+                        template="plotly_dark",
+                        labels={'peak_ccu': 'Pico de Usuarios Simultáneos (peak_ccu)', 'value': 'Métrica de Engagement'},
+                        title="Peak CCU vs Métricas de Engagement"
+                    )
+                    fig3.update_traces(marker=dict(opacity=0.7, size=6))
+                    fig3.update_layout(height=400, legend_title="Métrica")
+                    st.plotly_chart(fig3, use_container_width=True)
+                    st.metric("Correlación promedio con engagement", f"{avg_corr_peak:.2f}")
+
+            # 4. Metacritic vs Owners
+            if 'metacritic_score' in available_cols and ('min_owners' in available_cols or 'max_owners' in available_cols):
+                owner_col = 'max_owners' if 'max_owners' in available_cols else 'min_owners'
+                fig4 = px.scatter(
+                    filtered, x='metacritic_score', y=owner_col,
+                    trendline="ols",
+                    log_y=True if owner_col in ['min_owners', 'max_owners'] else False,
+                    template="plotly_dark",
+                    labels={'metacritic_score': 'Puntuación Metacritic', owner_col: 'Número de Dueños'},
+                    title=f"Metacritic Score vs {owner_col.replace('_', ' ').title()}"
+                )
+                fig4.update_traces(marker=dict(opacity=0.6, size=6))
+                fig4.update_layout(height=400)
+                st.plotly_chart(fig4, use_container_width=True)
+                corr_meta = corr_matrix.loc['metacritic_score', owner_col]
+                st.warning(f"**Correlación: {corr_meta:.3f}** → Influencia moderada en ventas")
+
+        st.markdown("---")
+
+        # --- VARIABLES IRRELEVANTES ---
+        st.subheader("Variables con Baja Correlación con el Éxito")
+        irrelevant = ['price', 'required_age', 'achievements', 'dlc_count']
+        relevant_success = ['recommendations', 'positive', 'total_num_reviews', 'max_owners']
+        relevant_success = [c for c in relevant_success if c in available_cols]
+
+        if relevant_success:
+            low_corr_cols = []
+            for col in irrelevant:
+                if col in available_cols:
+                    max_corr = corr_matrix.loc[col, relevant_success].abs().max()
+                    if max_corr < 0.3:
+                        low_corr_cols.append((col, max_corr))
+
+            if low_corr_cols:
+                st.error("**Variables con correlación débil (< 0.3) con métricas de éxito:**")
+                for col_name, corr_val in low_corr_cols:
+                    nice_name = col_name.replace('_', ' ').title()
+                    st.markdown(f"- **{nice_name}**: {corr_val:.3f}")
+                st.caption("Estas variables tienen poco poder predictivo para el éxito comercial o engagement.")
+            else:
+                st.info("Algunas variables esperadas como 'irrelevantes' muestran correlaciones moderadas en los datos filtrados.")
+
 
     
    
