@@ -285,43 +285,6 @@ with tab2:
             subset = filtered[filtered['required_age'] == age_val]
             st.markdown(f"**{age_val}:** {len(subset)} juegos - Precio avg: ${subset['price'].mean():.2f}")
     
-with col2:
-    st.subheader("Top 10 Juegos Mejor Valorados")
-    if 'name' in filtered.columns and len(filtered) > 0:
-        # Filtrar juegos que tengan nombre válido
-        top_games = filtered[filtered['name'].notna()].nlargest(10, 'porcentaje_positive_total')[
-            ['name', 'porcentaje_positive_total', 'price', 'total_num_reviews']
-        ].copy()
-        
-        if len(top_games) > 0:
-            top_games['porcentaje_positive_total'] = top_games['porcentaje_positive_total'] * 100
-            
-            fig_top = px.bar(
-                top_games,
-                x='porcentaje_positive_total',
-                y='name',
-                orientation='h',
-                color='price',
-                color_continuous_scale='Turbo',
-                template="plotly_dark",
-                labels={
-                    'porcentaje_positive_total': 'Valoración (%)',
-                    'name': 'Juego',
-                    'price': 'Precio ($)'
-                }
-            )
-            fig_top.update_layout(
-                height=400, 
-                yaxis={'categoryorder':'total ascending'},
-                xaxis_range=[0, 100]
-            )
-            st.plotly_chart(fig_top, use_container_width=True)
-        else:
-            st.warning("No hay juegos disponibles para mostrar en el Top 10")
-    else:
-        st.warning("No hay datos suficientes para generar el Top 10")
-    
-    st.markdown("---")
     
     # Explorador dinámico mejorado
     st.subheader("Explorador Dinámico de Variables")
