@@ -198,40 +198,5 @@ with tab3:
 
     st.divider()
 
-    st.subheader("WordCloud de descripciones / reseñas")
-
-    text_column = st.selectbox(
-        "Selecciona columna de texto",
-        df.select_dtypes(include="object").columns
-    )
-
-    mask_image = st.file_uploader(
-        "Opcional: sube una imagen para el WordCloud",
-        type=["png", "jpg", "jpeg"]
-    )
-
-    text_data = " ".join(df[text_column].dropna().astype(str).values)
-
-    if st.button("Generar WordCloud"):
-        if mask_image:
-            mask = np.array(Image.open(mask_image))
-            wc = WordCloud(
-                background_color="black",
-                mask=mask,
-                colormap="inferno",
-                max_words=200
-            ).generate(text_data)
-        else:
-            wc = WordCloud(
-                background_color="black",
-                colormap="inferno",
-                max_words=200
-            ).generate(text_data)
-
-        fig, ax = plt.subplots(figsize=(10, 5))
-        ax.imshow(wc, interpolation="bilinear")
-        ax.axis("off")
-        st.pyplot(fig)
-
 
 
