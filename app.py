@@ -572,15 +572,15 @@ with tab5:
     with col1:
         st.subheader("Word Cloud 1 - Términos más frecuentes en reseñas positivas")
         # Ruta relativa si la carpeta images está en el root del repo
-        st.image("https://raw.githubusercontent.com/yerquin15/Videojuegos-dashboard/main/dfsvrw.png", use_container_width=True)
-        st.image("https://raw.githubusercontent.com/yerquin15/Videojuegos-dashboard/main/descarga1.png", use_container_width=True)
-        st.image("https://raw.githubusercontent.com/yerquin15/Videojuegos-dashboard/main/descarga3.png", use_container_width=True)
+        st.image("https://raw.githubusercontent.com/yerquin15/Videojuegos-dashboard/main/imagenes/positive_binary.png", use_container_width=True)
+        st.image("https://raw.githubusercontent.com/yerquin15/Videojuegos-dashboard/main/imagenes/positive_frecuency.png", use_container_width=True)
+        st.image("https://raw.githubusercontent.com/yerquin15/Videojuegos-dashboard/main/imagenes/positive_tfidf.png", use_container_width=True)
         
     with col2:
         st.subheader("Word Cloud 2 - Términos más frecuentes en todas las reseñas")
-        st.image("https://raw.githubusercontent.com/yerquin15/Videojuegos-dashboard/main/wcn.png", use_container_width=True)
-        st.image("https://raw.githubusercontent.com/yerquin15/Videojuegos-dashboard/main/descarga2.png", use_container_width=True)
-        st.image("https://raw.githubusercontent.com/yerquin15/Videojuegos-dashboard/main/descarga4.png", use_container_width=True)
+        st.image("https://raw.githubusercontent.com/yerquin15/Videojuegos-dashboard/main/imagenes/negative_binary_tags.png", use_container_width=True)
+        st.image("https://raw.githubusercontent.com/yerquin15/Videojuegos-dashboard/main/imagenes/negative_frecuency.png", use_container_width=True)
+        st.image("https://raw.githubusercontent.com/yerquin15/Videojuegos-dashboard/main/imagenes/negative_tfidf.png", use_container_width=True)
 
     st.markdown("---")
     
